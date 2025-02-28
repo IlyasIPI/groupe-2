@@ -79,12 +79,7 @@ jobs:
     needs: [push_to_registries]
     steps:
       - name: Run Docker container 
-        run: docker run -d harbor.kakor.ovh/ipi/groupe-ipi-2
+        run: docker run -d harbor.kakor.ovh/ipi/groupe-ipi-2:${{ github.ref_name }} -p 5000:5000
 
-      - name: Run the build process with Docker
-        uses: addnab/docker-run-action@v3
-        with:
-          image: harbor.kakor.ovh/ipi/groupe-ipi-2:${{ github.ref_name }}
-          run: |
-            flask run --host 0.0.0.0
-            curl http://127.0.0.1:5000
+      - name: Test API
+        run: curl http://127.0.0.1:5000

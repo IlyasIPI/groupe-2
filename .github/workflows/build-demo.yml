@@ -79,7 +79,7 @@ jobs:
     needs: [push_to_registries]
     steps:
       - name: Run Docker container 
-        run: docker run -d
+        run: docker run -d harbor.kakor.ovh/ipi/groupe-ipi-2
 
       - name: Run the build process with Docker
         uses: addnab/docker-run-action@v3

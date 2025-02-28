@@ -5,12 +5,12 @@ on:
     tags: ['*']
 
 jobs:
-  lint_python:
+  chocolat_lint:
     name: Lint python code
     runs-on: ubuntu-latest
     permissions:
       packages: write
-      contents: write
+      contents: read
       attestations: write
       id-token: write
     steps:
@@ -19,10 +19,10 @@ jobs:
       uses: sunnysid3up/python-linter@master
       with:
         source: "docker/app"
-        strict: "low"
         mypy-options: "--ignore-missing-imports --show-error-codes"
         pylint-options: "--rcfile=setup.cfg"
         isort-options: "-w 100"
+
   lint_docker:
     name: Lint docker file code
     runs-on: ubuntu-latest
@@ -36,9 +36,10 @@ jobs:
     - uses: hadolint/hadolint-action@v3.1.0
       with:
         dockerfile: docker/Dockerfile
+  
   push_to_registries:
-    needs: [lint_docker, lint_python]
     name: Push Docker image to single registry
+    needs: [chocolat_lint, lint_docker]
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -71,6 +72,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
   test_api:
     name: Test image api
     runs-on: ubuntu-latest

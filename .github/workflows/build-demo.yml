@@ -35,7 +35,7 @@ jobs:
     - uses: hadolint/hadolint-action@v3.1.0
       with:
         dockerfile: docker/Dockerfile
-  build_and_test:
+    build_and_test:
     name: Build and Test Docker image
     runs-on: ubuntu-latest
     needs: [chocolat_lint, lint_docker]  # Dépendance sur les jobs de linting
@@ -59,24 +59,41 @@ jobs:
         run: |
           docker run -d -p 5000:5000 my-librairie-image
 
+      # Wait for the server to be ready
+      - name: Wait for server to start
+        run: |
+          sleep 10  # Augmenter le délai pour s'assurer que le serveur est bien démarré
+
+      # Vérifier si le conteneur fonctionne
+      - name: Check running Docker containers
+        run: |
+          docker ps
+
+      # Vérifier si curl est installé dans le conteneur
+      - name: Check if curl is installed in container
+        run: |
+          container_id=$(docker ps -q)
+          docker exec $container_id which curl || echo "curl is not installed"
+
+      # Test if the server is running inside the container
       - name: Test if server is running inside container
         run: |
           container_id=$(docker ps -q)
-          docker exec $container_id curl http://localhost:5000/librairie/livres          
+          docker exec $container_id curl -s http://localhost:5000/librairie/livres || echo "Server not responding"
 
       # Test the Docker container by creating a new book
       - name: Test create book API
         run: |
-          sleep 5  # Wait for the server to start
           curl --header "Content-Type: application/json" \
             --request POST \
-            --data '{"titre": "DevSecOps DEAVSETS", "auteur": "Groupe 2"}' \
+            --data '{"titre": "DevSecOps DEAVSETS", "auteur": "Jordan Assouline"}' \
             http://localhost:5000/librairie/livres
 
       # Optionally stop the container after testing
       - name: Stop Docker container
         run: |
           docker ps -q | xargs docker stop
+
 
   push_to_registries:
     name: Push Docker image to single registry

@@ -85,4 +85,4 @@ jobs:
         run: sleep 5  # Attente de 5 secondes pour s'assurer que l'API est bien lancée
 
       - name: Test API
-        run: curl http://localhost:5000/librairie/livres
+        run: curl http://127.0.0.1:5000

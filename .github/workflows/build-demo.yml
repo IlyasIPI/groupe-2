@@ -52,7 +52,7 @@ jobs:
       # Build the Docker image
       - name: Build Docker image
         run: |
-          docker build -t my-librairie-image .
+          docker build -t my-librairie-image -f docker/Dockerfile .
 
       # Run the Docker container
       - name: Run Docker container

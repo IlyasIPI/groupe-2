@@ -35,6 +35,44 @@ jobs:
     - uses: hadolint/hadolint-action@v3.1.0
       with:
         dockerfile: docker/Dockerfile
+  build_and_test:
+    name: Build and Test Docker image
+    runs-on: ubuntu-latest
+    needs: [chocolat_lint, lint_docker]  # Dépendance sur les jobs de linting
+
+    steps:
+      # Checkout code
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      # Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Build the Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t my-librairie-image .
+
+      # Run the Docker container
+      - name: Run Docker container
+        run: |
+          docker run -d -p 5000:5000 my-librairie-image
+
+      # Test the Docker container by creating a new book
+      - name: Test create book API
+        run: |
+          sleep 5  # Wait for the server to start
+          curl --header "Content-Type: application/json" \
+            --request POST \
+            --data '{"titre": "DevSecOps DEAVSETS", "auteur": "Groupe 2"}' \
+            http://localhost:5000/librairie/livres
+
+      # Optionally stop the container after testing
+      - name: Stop Docker container
+        run: |
+          docker ps -q | xargs docker stop
+
   push_to_registries:
     name: Push Docker image to single registry
     runs-on: ubuntu-latest

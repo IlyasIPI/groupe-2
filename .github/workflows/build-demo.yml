@@ -37,62 +37,10 @@ jobs:
       with:
         dockerfile: docker/Dockerfile
   
-  build_and_test:
-    name: Build and Test Docker image
-    runs-on: ubuntu-latest
-    needs: [chocolat_lint, lint_docker]  # Dépendance sur les jobs de linting
-
-    steps:
-      - name: Check out the repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Build Docker image
-        run: |
-          docker build -t my-librairie-image -f docker/Dockerfile .
-
-      - name: Run Docker container
-        run: |
-          docker run -d -p 5000:5000 my-librairie-image
-
-      - name: Wait for server to start
-        run: |
-          sleep 10  # Augmenter le délai pour s'assurer que le serveur est bien démarré
-
-      - name: Check running Docker containers
-        run: |
-          docker ps
-
-      - name: Check if curl is installed in container
-        run: |
-          container_id=$(docker ps -q)
-          docker exec $container_id which curl || echo "curl is not installed"
-
-      - name: Test if server is running inside container
-        run: |
-          container_id=$(docker ps -q)
-          docker exec $container_id curl -s http://localhost:5000/librairie/livres || echo "Server not responding"
-
-      # Test the Docker container by creating a new book
-      - name: Test create book API
-        run: |
-          curl --header "Content-Type: application/json" \
-            --request POST \
-            --data '{"titre": "DevSecOps DEAVSETS", "auteur": "Jordan Assouline"}' \
-            http://localhost:5000/librairie/livres
-
-      # Optionally stop the container after testing
-      - name: Stop Docker container
-        run: |
-          docker ps -q | xargs docker stop
-
-
   push_to_registries:
     name: Push Docker image to single registry
     runs-on: ubuntu-latest
-    needs: [chocolat_lint, lint_docker, build_and_test]
+    needs: [chocolat_lint, lint_docker]
     permissions:
       packages: write
       contents: read
@@ -124,3 +72,13 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  build_and_test:
+    name: Test image api
+    runs-on: ubuntu-latest
+    needs: [push_to_registries]
+    steps:
+      - name: Run Docker container
+        run: docker run -d -p 5000:5000 --name python harbor.kakor.ovh/ipi/correction:${{ github.ref_name }}
+      - name: test nginx
+        run: sleep 10 && curl http://127.0.0.1:5000

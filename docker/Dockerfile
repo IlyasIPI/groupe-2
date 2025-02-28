@@ -1,9 +1,10 @@
 FROM python:3.9
 #ajout d'un utilisateur par sécurité
 RUN useradd -ms /bin/bash pythonuser
+RUN mkdir -p /app
 WORKDIR /app
 RUN pip install --no-cache-dir flask==3.1.0
-COPY app .
+COPY . /app
 RUN chown -R pythonuser:pythonuser /docker/app
 EXPOSE 5000
 USER pythonuser

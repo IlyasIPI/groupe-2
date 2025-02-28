@@ -70,17 +70,3 @@ jobs:
     - uses: hadolint/hadolint-action@v3.1.0
       with:
         dockerfile: docker/Dockerfile
-
-  lint_docker:
-    name: Lint docker file code
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: write
-      attestations: write
-      id-token: write
-    steps:
-    - uses: actions/checkout@v4
-    - uses: hadolint/hadolint-action@v3.1.0
-      with:
-        dockerfile: docker/Dockerfile

@@ -22,7 +22,7 @@ jobs:
         mypy-options: "--ignore-missing-imports --show-error-codes"
         pylint-options: "--rcfile=setup.cfg"
         isort-options: "-w 100"
-        
+
   lint_docker:
     name: Lint docker file code
     runs-on: ubuntu-latest
@@ -43,41 +43,33 @@ jobs:
     needs: [chocolat_lint, lint_docker]  # Dépendance sur les jobs de linting
 
     steps:
-      # Checkout code
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      # Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Build the Docker image
       - name: Build Docker image
         run: |
           docker build -t my-librairie-image -f docker/Dockerfile .
 
-      # Run the Docker container
       - name: Run Docker container
         run: |
           docker run -d -p 5000:5000 my-librairie-image
 
-      # Wait for the server to be ready
       - name: Wait for server to start
         run: |
           sleep 10  # Augmenter le délai pour s'assurer que le serveur est bien démarré
 
-      # Vérifier si le conteneur fonctionne
       - name: Check running Docker containers
         run: |
           docker ps
 
-      # Vérifier si curl est installé dans le conteneur
       - name: Check if curl is installed in container
         run: |
           container_id=$(docker ps -q)
           docker exec $container_id which curl || echo "curl is not installed"
 
-      # Test if the server is running inside the container
       - name: Test if server is running inside container
         run: |
           container_id=$(docker ps -q)
